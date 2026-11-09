@@ -66,17 +66,29 @@ def main():
         description="標準入力のコーヒーの好みから、合う豆を出力する")
     parser.add_argument("-n", "--number", type=int, default=1,
                         help="1行の入力につき出力する豆の数（既定: 1）")
+    parser.add_argument("-r", "--roast",
+                        choices=["light", "medium", "dark"],
+                        help="焙煎度で候補を絞る")
+    parser.add_argument("-l", "--list", action="store_true",
+                        help="豆のデータを一覧表示して終了する")
     args = parser.parse_args()
 
     if args.number < 1:
         print("beanmatch: -n には1以上を指定してください", file=sys.stderr)
         return 1
 
+    beans = [b for b in BEANS if args.roast is None or b[1] == args.roast]
+
+    if args.list:
+        for bean in beans:
+            print("\t".join(str(x) for x in bean))
+        return 0
+
     for line in sys.stdin:
         line = line.split("#", 1)[0].strip()
         if not line:
             continue
-        for name, score in rank(parse_line(line), BEANS)[:args.number]:
+        for name, score in rank(parse_line(line), beans)[:args.number]:
             print(f"{name}\t{score}")
     return 0
 
