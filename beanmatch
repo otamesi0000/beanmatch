@@ -84,13 +84,20 @@ def main():
             print("\t".join(str(x) for x in bean))
         return 0
 
-    for line in sys.stdin:
+    status = 0
+    for lineno, line in enumerate(sys.stdin, 1):
         line = line.split("#", 1)[0].strip()
         if not line:
             continue
-        for name, score in rank(parse_line(line), beans)[:args.number]:
+        try:
+            pref = parse_line(line)
+        except ValueError as e:
+            print(f"beanmatch: {lineno}行目: {e}", file=sys.stderr)
+            status = 1
+            continue
+        for name, score in rank(pref, beans)[:args.number]:
             print(f"{name}\t{score}")
-    return 0
+    return status
 
 
 if __name__ == "__main__":
