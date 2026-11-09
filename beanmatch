@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Your Name
+# SPDX-License-Identifier: BSD-3-Clause
+
+import sys
+
+AXES = ("acidity", "bitterness", "body", "sweetness", "aroma")
+
+KEY_ALIASES = {
+    "acidity": "acidity", "酸味": "acidity",
+    "bitterness": "bitterness", "苦味": "bitterness",
+    "body": "body", "コク": "body",
+    "sweetness": "sweetness", "甘み": "sweetness",
+    "aroma": "aroma", "香り": "aroma",
+}
+
+# 名前, 焙煎度, 酸味, 苦味, コク, 甘み, 香り（1〜5, 作者による主観評価）
+BEANS = [
+    ("エチオピア・イルガチェフェ", "light", 5, 1, 2, 4, 5),
+    ("エチオピア・シダモ", "light", 4, 2, 3, 5, 5),
+    ("ケニア", "light", 5, 2, 4, 3, 4),
+    ("タンザニア", "medium", 4, 2, 3, 3, 3),
+    ("コスタリカ", "medium", 4, 2, 3, 4, 3),
+    ("グアテマラ", "medium", 3, 3, 3, 4, 4),
+    ("コロンビア", "medium", 3, 3, 4, 4, 3),
+    ("イエメン・モカ", "medium", 3, 3, 4, 4, 5),
+    ("ブラジル", "medium", 2, 3, 3, 4, 2),
+    ("インドネシア・マンデリン", "dark", 1, 4, 5, 3, 3),
+    ("ベトナム・ロブスタ", "dark", 1, 5, 5, 1, 1),
+]
+
+
+def parse_line(line):
+    """'酸味=4 苦味=2' のような1行を {軸: 値} の辞書にする"""
+    pref = {}
+    for token in line.split():
+        if "=" not in token:
+            raise ValueError(f"key=value の形式ではありません: {token}")
+        key, value = token.split("=", 1)
+        if key not in KEY_ALIASES:
+            raise ValueError(f"不明な項目です: {key}")
+        if not value.isdigit() or not 1 <= int(value) <= 5:
+            raise ValueError(f"値は1〜5の整数で指定してください: {token}")
+        pref[KEY_ALIASES[key]] = int(value)
+    return pref
+
+
+def main():
+    for line in sys.stdin:
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        print(parse_line(line))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
