@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2026 Your Name
+# SPDX-FileCopyrightText: 2026 Haru Motoyama
 # SPDX-License-Identifier: BSD-3-Clause
 
+import math
 import sys
 
 AXES = ("acidity", "bitterness", "body", "sweetness", "aroma")
@@ -45,12 +46,26 @@ def parse_line(line):
     return pref
 
 
+def rank(pref, beans):
+    """好みとのユークリッド距離が近い順に (豆名, 一致度%) を返す"""
+    max_dist = 4 * math.sqrt(len(pref))
+    scored = []
+    for bean in beans:
+        sq = 0
+        for axis, value in pref.items():
+            sq += (bean[2 + AXES.index(axis)] - value) ** 2
+        scored.append((math.sqrt(sq), bean[0]))
+    scored.sort(key=lambda x: x[0])
+    return [(name, round(100 * (1 - d / max_dist))) for d, name in scored]
+
+
 def main():
     for line in sys.stdin:
         line = line.split("#", 1)[0].strip()
         if not line:
             continue
-        print(parse_line(line))
+        for name, score in rank(parse_line(line), BEANS)[:1]:
+            print(f"{name}\t{score}")
     return 0
 
 
