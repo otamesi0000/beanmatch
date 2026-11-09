@@ -44,6 +44,23 @@ out=$(printf "" | "$cmd")
 [ "$?" = 0 ] || ng "$LINENO"
 [ "${out}" = "" ] || ng "$LINENO"
 
+# 引数で1件分の好みを渡せる
+out=$("$cmd" 苦味=5 コク=5)
+[ "${out}" = $'ベトナム・ロブスタ\t100' ] || ng "$LINENO"
+
+# 引数と標準入力で同じ結果になる
+a=$("$cmd" -n 3 酸味=4 甘み=5 香り=5)
+b=$(echo "酸味=4 甘み=5 香り=5" | "$cmd" -n 3)
+[ "${a}" = "${b}" ] || ng "$LINENO"
+
+# 引数とオプションを組み合わせられる
+out=$("$cmd" 苦味=5 -r light)
+[ "${out}" = $'エチオピア・シダモ\t25' ] || ng "$LINENO"
+
+# 引数があるときは標準入力を読まない
+out=$(echo "酸味=5" | "$cmd" 苦味=5 コク=5)
+[ "${out}" = $'ベトナム・ロブスタ\t100' ] || ng "$LINENO"
+
 ### 異常系 ###
 # 範囲外の値
 out=$(echo "酸味=9" | "$cmd" 2> /dev/null)
@@ -67,6 +84,15 @@ out=$(echo "酸味=9" | "$cmd" 2>&1 > /dev/null)
 out=$(printf "酸味=9\n酸味=5\n" | "$cmd" 2> /dev/null | wc -l)
 [ "${out}" = 1 ] || ng "$LINENO"
 printf "酸味=9\n酸味=5\n" | "$cmd" > /dev/null 2>&1
+[ "$?" = 1 ] || ng "$LINENO"
+
+# 引数の値が不正
+out=$("$cmd" 酸味=9 2> /dev/null)
+[ "$?" = 1 ] || ng "$LINENO"
+[ "${out}" = "" ] || ng "$LINENO"
+
+# 引数の項目が不明
+out=$("$cmd" 塩味=3 2> /dev/null)
 [ "$?" = 1 ] || ng "$LINENO"
 
 # 不正なオプション
