@@ -60,12 +60,21 @@ def rank(pref, beans):
     return [(name, round(100 * (1 - d / max_dist))) for d, name in scored]
 
 
+def print_ranking(pref, beans, number):
+    for name, score in rank(pref, beans)[:number]:
+        print(f"{name}\t{score}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="beanmatch",
-        description="標準入力のコーヒーの好みから、合う豆を出力する")
+        description="コーヒーの好みから、合う豆を出力する。"
+                    "好みを引数で渡すと1件だけ、"
+                    "引数がなければ標準入力を1行1件として処理する")
+    parser.add_argument("prefs", nargs="*", metavar="項目=値",
+                        help="1件分の好み（例: 酸味=4 香り=5）")
     parser.add_argument("-n", "--number", type=int, default=1,
-                        help="1行の入力につき出力する豆の数（既定: 1）")
+                        help="好み1件につき出力する豆の数（既定: 1）")
     parser.add_argument("-r", "--roast",
                         choices=["light", "medium", "dark"],
                         help="焙煎度で候補を絞る")
@@ -84,6 +93,15 @@ def main():
             print("\t".join(str(x) for x in bean))
         return 0
 
+    if args.prefs:
+        try:
+            pref = parse_line(" ".join(args.prefs))
+        except ValueError as e:
+            print(f"beanmatch: {e}", file=sys.stderr)
+            return 1
+        print_ranking(pref, beans, args.number)
+        return 0
+
     status = 0
     for lineno, line in enumerate(sys.stdin, 1):
         line = line.split("#", 1)[0].strip()
@@ -95,8 +113,7 @@ def main():
             print(f"beanmatch: {lineno}行目: {e}", file=sys.stderr)
             status = 1
             continue
-        for name, score in rank(pref, beans)[:args.number]:
-            print(f"{name}\t{score}")
+        print_ranking(pref, beans, args.number)
     return status
 
 
