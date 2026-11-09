@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2026 Haru Motoyama
+# SPDX-FileCopyrightText: 2026 Your Name
 # SPDX-License-Identifier: BSD-3-Clause
 
+import argparse
 import math
 import sys
 
@@ -60,11 +61,22 @@ def rank(pref, beans):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        prog="beanmatch",
+        description="標準入力のコーヒーの好みから、合う豆を出力する")
+    parser.add_argument("-n", "--number", type=int, default=1,
+                        help="1行の入力につき出力する豆の数（既定: 1）")
+    args = parser.parse_args()
+
+    if args.number < 1:
+        print("beanmatch: -n には1以上を指定してください", file=sys.stderr)
+        return 1
+
     for line in sys.stdin:
         line = line.split("#", 1)[0].strip()
         if not line:
             continue
-        for name, score in rank(parse_line(line), BEANS)[:1]:
+        for name, score in rank(parse_line(line), BEANS)[:args.number]:
             print(f"{name}\t{score}")
     return 0
 
